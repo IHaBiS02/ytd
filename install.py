@@ -27,12 +27,12 @@ def main():
     applications = data / "applications"
     app.mkdir(parents=True, exist_ok=True)
     applications.mkdir(parents=True, exist_ok=True)
-    for filename in ("yt-dlp.sh", "downloader.py"):
+    for filename in ("yt-dlp.sh", "downloader.py", "gui.py"):
         shutil.copy2(source / filename, app / filename)
     (app / "yt-dlp.sh").chmod(0o755)
     template = (source / "youtube-downloader.desktop").read_text(encoding="utf-8")
     content = "\n".join(
-        "Exec=" + desktop_quote(app / "yt-dlp.sh") if line.startswith("Exec=") else line
+        "Exec=" + desktop_quote(app / "yt-dlp.sh") + " --gui" if line.startswith("Exec=") else line
         for line in template.splitlines()
     ) + "\n"
     launcher = applications / "youtube-downloader.desktop"

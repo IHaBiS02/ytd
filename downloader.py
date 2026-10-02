@@ -68,7 +68,8 @@ def download_options(root, collection):
         video = f"{stem}.%(ext)s"
     metadata = "metadata/%(title).150B [%(id)s].%(ext)s"
     return [
-        "-k", "--write-thumbnail", "--embed-thumbnail", "--write-description",
+        "--write-thumbnail", "--embed-thumbnail", "--write-description",
+        "--newline", "--progress", "--no-colors",
         "--write-info-json", "--write-playlist-metafiles", "--write-comments",
         "--sub-langs", "all", "--write-subs", "--embed-subs", "--embed-metadata",
         "--embed-chapters", "--embed-info-json", "--audio-multistreams",
