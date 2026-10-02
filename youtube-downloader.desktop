@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=YouTube Downloader
+Name[ko]=YouTube 다운로드
+Comment=Download a video, playlist, or channel into ~/youtube
+Comment[ko]=영상·재생목록·채널을 ~/youtube에 저장
+Exec=/path/to/ytd/yt-dlp.sh
+Icon=folder-download
+Terminal=true
+Categories=AudioVideo;
+StartupNotify=false
