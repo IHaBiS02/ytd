@@ -17,26 +17,36 @@ KDialog 또는 Zenity 입력창을 사용하고, 둘 다 없으면 터미널에�
 현재 시스템의 Homebrew와 사용자 로컬 설치 경로도 런처가 검색합니다.
 yt-dlp는 실행할 때 `uvx --refresh`로 갱신 확인합니다.
 
+이 폴더에서 실행합니다.
+
 ```bash
-python3 /path/to/ytd/install.py
+python3 install.py
 ```
 
 설치하면 앱 메뉴와 XDG 바탕화면에 **YouTube 다운로드**가 생깁니다.
 KDE가 처음에 실행 허용을 물으면 허용합니다. 런처와 실행 파일은
 `${XDG_DATA_HOME:-~/.local/share}` 아래에 복사되므로 원본 작업 폴더를
 옮겨도 설치된 앱은 실행할 수 있습니다. 수정 후에는 설치 명령을 다시 실행합니다.
-이 폴더의 `youtube-downloader.desktop`은 현재 작업 폴더를 직접 실행합니다.
+이 폴더의 `youtube-downloader.desktop`은 설치 없이도 쓸 수 있으며, 자신과 같은
+폴더에 있는 `yt-dlp.sh`를 찾아 실행하므로 리포지토리를 어디에 두어도 됩니다.
+
+## 저장 폴더
+
+기본 저장 폴더는 `~/youtube`입니다. 창의 **폴더 선택…**으로 바꿀 수 있고,
+선택한 폴더는 `${XDG_CONFIG_HOME:-~/.config}/youtube-downloader/download_dir`에
+기록되어 다음 실행과 터미널 실행에도 적용됩니다. 터미널에서는
+`YTD_DOWNLOAD_DIR` 환경 변수로 한 번만 다른 폴더를 지정할 수도 있습니다.
 
 터미널 실행도 가능합니다.
 
 ```bash
-/path/to/ytd/yt-dlp.sh 'https://www.youtube.com/playlist?list=...'
+./yt-dlp.sh 'https://www.youtube.com/playlist?list=...'
 ```
 
 ## 저장 구조
 
 ```text
-~/youtube/
+저장 폴더/
 ├── 채널 또는 재생목록 이름 [ID]/
 │   ├── metadata/
 │   │   ├── source.info.json           # 입력한 대상의 헤더 정보와 원본 URL
@@ -77,9 +87,9 @@ KDE가 처음에 실행 허용을 물으면 허용합니다. 런처와 실행 �
 ## 검증
 
 ```bash
-bash -n /path/to/ytd/yt-dlp.sh
-desktop-file-validate /path/to/ytd/youtube-downloader.desktop
-python3 /path/to/ytd/install.py --prefix /tmp/youtube-downloader-check
+bash -n yt-dlp.sh
+desktop-file-validate youtube-downloader.desktop
+python3 install.py --prefix /tmp/youtube-downloader-check
 QT_QPA_PLATFORM=offscreen /usr/bin/python3 -m unittest -v test_gui
 ```
 

@@ -94,6 +94,17 @@ class DownloadWindowTests(unittest.TestCase):
                 continue
         self.assertEqual(running, [])
 
+    def test_chosen_folder_is_saved_and_passed_to_worker(self):
+        chosen = str(self.root / "저장 폴더")
+        with patch.dict(os.environ, {"XDG_CONFIG_HOME": str(self.root / "config")}), \
+                patch.object(gui.QFileDialog, "getExistingDirectory", return_value=chosen):
+            self.window.choose_folder()
+            self.assertEqual(str(gui.download_base()), chosen)
+        self.start_worker('printf "폴더=%s\\n" "$YTD_DOWNLOAD_DIR"')
+        self.wait_for(lambda: not self.window.active)
+        self.assertIn(f"폴더={chosen}", self.window.log.toPlainText())
+        self.assertTrue(self.window.folder_button.isEnabled())
+
     def test_failed_start_is_visible(self):
         self.window.url.setText("https://example.com")
         with patch.dict(os.environ, {"PATH": "/nonexistent"}):

@@ -42,6 +42,27 @@ def is_collection(info):
     return info.get("_type") in ("playlist", "multi_video")
 
 
+def settings_file():
+    config = os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config"
+    return Path(config) / "youtube-downloader" / "download_dir"
+
+
+def download_base():
+    # YTD_DOWNLOAD_DIR wins over the folder saved from the GUI.
+    configured = os.environ.get("YTD_DOWNLOAD_DIR", "").strip()
+    if not configured:
+        try:
+            configured = settings_file().read_text(encoding="utf-8").strip()
+        except FileNotFoundError:
+            pass
+    return Path(configured).expanduser() if configured else Path.home() / "youtube"
+
+
+def save_download_base(folder):
+    settings_file().parent.mkdir(parents=True, exist_ok=True)
+    settings_file().write_text(f"{folder}\n", encoding="utf-8")
+
+
 def destination(base, info):
     title = info.get("title") or info.get("channel") or "제목 없음"
     # IDs prevent unrelated channels/playlists with the same title from mixing.
@@ -103,7 +124,7 @@ def main():
     if result.returncode:
         raise RuntimeError("주소 정보를 가져오지 못했습니다. 위의 yt-dlp 오류를 확인해 주세요.")
     info = json.loads(result.stdout)
-    root = destination(Path.home() / "youtube", info)
+    root = destination(download_base(), info)
     root.mkdir(parents=True, exist_ok=True)
     collection = is_collection(info)
     if collection:

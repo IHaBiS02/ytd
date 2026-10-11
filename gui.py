@@ -8,12 +8,14 @@ import signal
 import sys
 from urllib.parse import urlsplit
 
-from PySide6.QtCore import QProcess, QTimer
+from PySide6.QtCore import QProcess, QProcessEnvironment, QTimer
 from PySide6.QtGui import QFontDatabase, QTextCursor
 from PySide6.QtWidgets import (
-    QApplication, QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit,
+    QApplication, QFileDialog, QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit,
     QPushButton, QVBoxLayout, QWidget,
 )
+
+from downloader import download_base, save_download_base
 
 
 class DownloadWindow(QWidget):
@@ -26,6 +28,9 @@ class DownloadWindow(QWidget):
         self.start_button = QPushButton("다운로드")
         self.stop_button = QPushButton("중단")
         self.stop_button.setEnabled(False)
+        self.folder = QLineEdit(str(download_base()))
+        self.folder.setReadOnly(True)
+        self.folder_button = QPushButton("폴더 선택…")
         self.status = QLabel("주소를 입력한 후 다운로드를 누르세요.")
         self.log = QPlainTextEdit()
         self.log.setReadOnly(True)
@@ -36,8 +41,13 @@ class DownloadWindow(QWidget):
         controls.addWidget(self.url, 1)
         controls.addWidget(self.start_button)
         controls.addWidget(self.stop_button)
+        folder_row = QHBoxLayout()
+        folder_row.addWidget(QLabel("저장 폴더"))
+        folder_row.addWidget(self.folder, 1)
+        folder_row.addWidget(self.folder_button)
         layout = QVBoxLayout(self)
         layout.addLayout(controls)
+        layout.addLayout(folder_row)
         layout.addWidget(self.status)
         layout.addWidget(self.log, 1)
 
@@ -62,6 +72,17 @@ class DownloadWindow(QWidget):
         self.start_button.clicked.connect(self.start_download)
         self.url.returnPressed.connect(self.start_download)
         self.stop_button.clicked.connect(self.stop_download)
+        self.folder_button.clicked.connect(self.choose_folder)
+
+    def choose_folder(self):
+        chosen = QFileDialog.getExistingDirectory(self, "저장 폴더 선택", self.folder.text())
+        if not chosen:
+            return
+        self.folder.setText(chosen)
+        try:
+            save_download_base(chosen)
+        except OSError as error:
+            self.status.setText(f"저장 폴더 설정을 기록하지 못했습니다: {error}")
 
     def append_log(self, text):
         scrollbar = self.log.verticalScrollBar()
@@ -92,8 +113,12 @@ class DownloadWindow(QWidget):
         self.group_id = None
         self.url.setEnabled(False)
         self.start_button.setEnabled(False)
+        self.folder_button.setEnabled(False)
         self.stop_button.setEnabled(True)
         self.status.setText("다운로드 준비 중…")
+        environment = QProcessEnvironment.systemEnvironment()
+        environment.insert("YTD_DOWNLOAD_DIR", self.folder.text())
+        self.process.setProcessEnvironment(environment)
         self.process.setProgram("bash")
         self.process.setArguments([str(Path(__file__).resolve().with_name("yt-dlp.sh")), url])
         self.process.start()
@@ -158,6 +183,7 @@ class DownloadWindow(QWidget):
         self.status.setText(message)
         self.url.setEnabled(True)
         self.start_button.setEnabled(True)
+        self.folder_button.setEnabled(True)
         self.stop_button.setEnabled(False)
         if self.close_pending:
             self.close()
